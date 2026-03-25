@@ -1,0 +1,194 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的在线图库 - 可上传图片</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f6f7f9;
+            padding-bottom: 60px;
+        }
+
+        /* 顶部导航 */
+        .header {
+            background: #2d3748;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        /* 上传区域 */
+        .upload-box {
+            max-width: 800px;
+            margin: 30px auto;
+            text-align: center;
+        }
+
+        .upload-btn {
+            padding: 12px 25px;
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+            .upload-btn:hover {
+                background: #3367d6;
+            }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* 图片网格 */
+        .gallery {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+            .gallery img {
+                width: 100%;
+                height: 180px;
+                object-fit: cover;
+                border-radius: 10px;
+                cursor: pointer;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                transition: 0.3s;
+            }
+
+                .gallery img:hover {
+                    transform: scale(1.05);
+                }
+
+        /* 放大预览 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+
+            .modal img {
+                max-width: 90%;
+                max-height: 90%;
+                border-radius: 5px;
+            }
+
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>图库</h1>
+        <p>支持上传、预览、自动保存</p>
+    </div>
+
+    <!-- 上传按钮 -->
+    <div class="upload-box">
+        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">➕ 点击上传图片</button>
+        <input type="file" id="fileInput" multiple accept="image/*">
+        <p>可多选图片，刷新页面不会丢失</p>
+    </div>
+
+    <!-- 图片展示区域 -->
+    <div class="gallery" id="gallery"></div>
+
+    <!-- 放大预览 -->
+    <div class="modal" id="modal">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <img id="modalImg">
+    </div>
+
+    <script>
+        const gallery = document.getElementById('gallery');
+        const modal = document.getElementById('modal');
+        const modalImg = document.getElementById('modalImg');
+        const fileInput = document.getElementById('fileInput');
+
+        // 页面加载时读取保存的图片
+        window.onload = loadImages;
+
+        // 选择图片上传
+        fileInput.onchange = function (e) {
+            const files = e.target.files;
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+
+                reader.onload = function (event) {
+                    const src = event.target.result;
+                    addImage(src);
+                    saveImage(src);
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // 添加图片到页面
+        function addImage(src) {
+            const img = document.createElement('img');
+            img.src = src;
+            img.onclick = () => {
+                modal.style.display = 'flex';
+                modalImg.src = src;
+            };
+            gallery.appendChild(img);
+        }
+
+        // 保存图片到浏览器
+        function saveImage(src) {
+            let images = JSON.parse(localStorage.getItem('gallery') || '[]');
+            images.push(src);
+            localStorage.setItem('gallery', JSON.stringify(images));
+        }
+
+        // 加载已保存的图片
+        function loadImages() {
+            let images = JSON.parse(localStorage.getItem('gallery') || '[]');
+            images.forEach(src => addImage(src));
+        }
+
+        // 关闭预览
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // 点击背景关闭
+        modal.onclick = (e) => {
+            if (e.target === modal) closeModal();
+        };
+    </script>
+</body>
+</html>
